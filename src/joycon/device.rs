@@ -532,21 +532,25 @@ pub struct JoyConDevice {
 }
 
 impl JoyConDevice {
-    pub const VENDOR_ID: u16 = 1406;
+    pub const NINTENDO_VENDOR_ID: u16 = 1406;
     pub const PRODUCT_ID_JOYCON_L: u16 = 8198;
     pub const PRODUCT_ID_JOYCON_R: u16 = 8199;
     pub const PRODUCT_ID_PROCON: u16 = 8201;
 
-    pub fn check_type_of_device(device_info: &DeviceInfo) -> JoyConResult<JoyConDeviceType> {
-        if device_info.vendor_id() != JoyConDevice::VENDOR_ID {
-            return Err(JoyConDeviceError::InvalidVendorID(device_info.vendor_id()).into());
-        }
+    pub const HORI_VENDOR_ID: u16 = 3853;
+    pub const PRODUCT_ID_HORIPAD: u16 = 193;
 
-        match device_info.product_id() {
-            JoyConDevice::PRODUCT_ID_JOYCON_L => Ok(JoyConDeviceType::JoyConL),
-            JoyConDevice::PRODUCT_ID_JOYCON_R => Ok(JoyConDeviceType::JoyConR),
-            JoyConDevice::PRODUCT_ID_PROCON => Ok(JoyConDeviceType::ProCon),
-            other => Err(JoyConDeviceError::InvalidProductID(other).into()),
+    pub fn check_type_of_device(device_info: &DeviceInfo) -> JoyConResult<JoyConDeviceType> {
+        match (device_info.vendor_id(), device_info.product_id()) {
+            (Self::NINTENDO_VENDOR_ID, Self::PRODUCT_ID_JOYCON_L) => Ok(JoyConDeviceType::JoyConL),
+            (Self::NINTENDO_VENDOR_ID, Self::PRODUCT_ID_JOYCON_R) => Ok(JoyConDeviceType::JoyConR),
+            (Self::NINTENDO_VENDOR_ID, Self::PRODUCT_ID_PROCON) => Ok(JoyConDeviceType::ProCon),
+            (Self::NINTENDO_VENDOR_ID, pid) => Err(JoyConDeviceError::InvalidProductID(pid).into()),
+
+            (Self::HORI_VENDOR_ID, Self::PRODUCT_ID_HORIPAD) => Ok(JoyConDeviceType::ProCon),
+            (Self::HORI_VENDOR_ID, pid) => Err(JoyConDeviceError::InvalidProductID(pid).into()),
+
+            (vid, _) => Err(JoyConDeviceError::InvalidVendorID(vid).into()),
         }
     }
 
